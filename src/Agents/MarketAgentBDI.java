@@ -2,6 +2,7 @@ package Agents;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import General.SealedProposal;
 import Products.Product;
 import jadex.bdiv3.annotation.Belief;
 import jadex.micro.annotation.Agent;
@@ -11,7 +12,7 @@ import jadex.micro.annotation.Description;
 
 @Agent
 @Description("A generic agent")
-public class MarketAgentBDI {
+public abstract class MarketAgentBDI {
 	
 	
 	protected Product product;
@@ -52,4 +53,7 @@ public class MarketAgentBDI {
 		return product;
 	}
 
+	
+	
+	abstract public void executeSealedProposal(SealedProposal sp);
 }

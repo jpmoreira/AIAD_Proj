@@ -1,27 +1,30 @@
 package Agents;
+import jadex.bdiv3.annotation.Belief;
+import jadex.bdiv3.annotation.Plan;
+import jadex.bdiv3.annotation.Trigger;
+import jadex.bridge.service.RequiredServiceInfo;
+import jadex.commons.future.DefaultResultListener;
+import jadex.commons.future.Future;
+import jadex.commons.future.IFuture;
+import jadex.commons.future.IResultListener;
+import jadex.micro.MicroAgent;
+import jadex.micro.annotation.Agent;
+import jadex.micro.annotation.AgentBody;
+import jadex.micro.annotation.Binding;
+import jadex.micro.annotation.Description;
+import jadex.micro.annotation.RequiredService;
+import jadex.micro.annotation.RequiredServices;
+
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.TimerTask;
 
 import General.Demand;
 import General.Proposal;
 import General.Utilities;
-import Products.Product;
 import Services.NegociationService;
-import jadex.bdiv3.annotation.Belief;
-import jadex.bdiv3.annotation.Plan;
-import jadex.micro.annotation.Binding;
-import jadex.bdiv3.annotation.Trigger;
-import jadex.commons.future.DefaultResultListener;
-import jadex.commons.future.IFuture;
-import jadex.micro.MicroAgent;
-import jadex.micro.annotation.Agent;
-import jadex.micro.annotation.AgentBody;
-import jadex.micro.annotation.Argument;
-import jadex.micro.annotation.Arguments;
-import jadex.micro.annotation.Description;
-import jadex.micro.annotation.RequiredService;
-import jadex.micro.annotation.RequiredServices;
-import jadex.bridge.service.RequiredServiceInfo;
+import Services.SellingService;
 
 @Agent
 @Description("A buyer agent")
@@ -77,10 +80,6 @@ public class BuyerAgentBDI extends MarketAgentBDI {
 	public int getDeadline() {
 		return deadline;
 	}
-
-
-
-
 	@AgentBody
 	public synchronized void agentBody() {
 		periodicTask=new TimerTask() {
@@ -112,18 +111,12 @@ public class BuyerAgentBDI extends MarketAgentBDI {
 
 		super.agentBody();
 	}
-
-	
-	@Plan(trigger=@Trigger(factchangeds="deadline"))
 	synchronized void changePricesAccordingly(){
 		
 	
 		setPrice((int)(price*1.1));
 		
 	}
-	
-	
-	@Plan(trigger=@Trigger(factchangeds="price"))
 	synchronized void askForPrices(){
 		
 		
@@ -132,30 +125,86 @@ public class BuyerAgentBDI extends MarketAgentBDI {
 		
 		System.out.println("Demand set");
 		
-		IFuture<NegociationService> futNegociation=agent.getServiceContainer().getRequiredService("NegociationService");
 		
+		Future<ArrayList<Proposal> >propsFuture=askForBids(d);
 		
-		System.out.println("got services");
-		
-		futNegociation.addResultListener(new DefaultResultListener<NegociationService>(){
+		propsFuture.addResultListener(new DefaultResultListener<ArrayList<Proposal>>() {
 
 			@Override
-			public void resultAvailable(NegociationService negociator) {
-				System.out.println("Negociator fetched " +negociator);
-				IFuture<ArrayList<Proposal> > proposalsFuture=negociator.startNegociation(d);
-				System.out.println("Asked to start negociating");
-				proposalsFuture.addResultListener(proposalListener);
+			public void resultAvailable(ArrayList<Proposal> arg0) {
 				
 			}
-			
-			
 		});
 		
 		
 		
 	}
+	synchronized public Future <ArrayList <Proposal> > askForBids(final Demand demand) {
+		
+		System.out.println("Started negociation");
+		
+		final Future <ArrayList<Proposal> > fut=new  Future<ArrayList <Proposal> >(); 
+		
+		IFuture<Collection<SellingService> > sellers=agent.getServiceContainer().getRequiredServices("SellingService");
+		
+		
+		sellers.addResultListener(new IResultListener<Collection<SellingService>>() {
+			
+			@Override
+			public void resultAvailable(Collection<SellingService> sellers) {
+				System.out.println("Found "+sellers.size()+" sellers");
+				
+				ArrayList<Proposal> proposals=new ArrayList<Proposal>();
+				
+				Iterator<SellingService> it=sellers.iterator();
+				
+				while(it.hasNext()){
+					
+					Proposal p=it.next().proposalForDemand(demand);
+					if(p==null)continue;
+					proposals.add(p);
+					
+				}
+				
+				fut.setResult(proposals);
+				
+				
+			}
+			
+			@Override
+			public void exceptionOccurred(Exception arg0) {
+				
+				System.out.println("No service provider found");
+				
+				fut.setResult(new ArrayList <Proposal>());
+			}
+		});
+		
+		return fut;
+
+	}
+	synchronized void handleProposalsWithAdequatePlan(ArrayList <Proposal> proposals,Demand demand){
+		
+		
+	}
 	
-
-
-
+	@Plan
+	synchronized void chooseCheapestSuitedProposalPlan(ArrayList <Proposal> proposals,Demand demand){
+		
+		Proposal best=null;
+		
+		for(int i=0;i<proposals.size();i++){
+			Proposal prop=proposals.get(i);
+			if(!prop.getProduct().equals(demand.getProduct()))return;
+			if(prop.getPrice()>demand.getPrice())return;
+			if(prop.getQuantity()<demand.getQuantity())return;
+			if(best==null|| best.getPrice()>prop.getPrice())best=prop;
+		}
+		
+		
+		if(best!=null){
+			
+			//TODO continue here
+		}
+	}
 }

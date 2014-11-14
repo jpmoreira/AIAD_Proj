@@ -13,4 +13,10 @@ public class SealedProposal {
 		demand=d;
 		proposal=p;
 	}
+	
+	
+	public synchronized void execute(){
+		
+		
+	}
 }
