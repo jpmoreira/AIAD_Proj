@@ -10,9 +10,9 @@ public class Proposal extends Bid {
 	}
 	
 	
-	public Proposal(SellerAgentBDI seller){
+	public Proposal(SellerAgentBDI seller,int quantity){
 		
-		super(seller,seller.getProduct(),seller.getPrice(),seller.getNrProducts(),0);
+		super(seller,seller.getProduct(),seller.getPrice(),quantity,0);
 		
 	}
 

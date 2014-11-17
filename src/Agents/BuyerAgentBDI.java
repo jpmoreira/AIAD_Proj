@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.TimerTask;
 
+import General.Bid;
 import General.Demand;
 import General.Proposal;
 import General.Utilities;
@@ -28,7 +29,7 @@ import Services.SellingService;
 
 @Agent
 @Description("A buyer agent")
-@RequiredServices(@RequiredService(name="NegociationService", type=NegociationService.class,
+@RequiredServices(@RequiredService(name="SellingService", type=SellingService.class,
 binding=@Binding(scope=RequiredServiceInfo.SCOPE_PLATFORM)))
 public class BuyerAgentBDI extends MarketAgentBDI {
 
@@ -77,11 +78,11 @@ public class BuyerAgentBDI extends MarketAgentBDI {
 
 
 
-	public int getDeadline() {
+	synchronized public int getDeadline() {
 		return deadline;
 	}
 	@AgentBody
-	public synchronized void agentBody() {
+	synchronized public void agentBody() {
 		periodicTask=new TimerTask() {
 			
 			@Override
@@ -91,11 +92,12 @@ public class BuyerAgentBDI extends MarketAgentBDI {
 					
 					if(Utilities.tossCoin(0.1f)){
 						
-						System.out.println("I have a need now");
+						
 						
 						quantity=Utilities.randInt(1, 30);
 						deadline=Utilities.randInt(1, 50);
 						price=Utilities.randInt(1,100);
+						System.out.println("I have a need now of "+quantity+" "+product+" at "+price);
 						
 					}
 					
@@ -159,8 +161,11 @@ public class BuyerAgentBDI extends MarketAgentBDI {
 				Iterator<SellingService> it=sellers.iterator();
 				
 				while(it.hasNext()){
+					SellingService s=it.next();
 					
-					Proposal p=it.next().proposalForDemand(demand);
+					System.out.println("Will get proposal for demand "+demand+" next is "+s);
+					Proposal p=s.proposalForDemand(demand);
+					System.out.println("Got proposal "+p);
 					if(p==null)continue;
 					proposals.add(p);
 					
@@ -174,7 +179,7 @@ public class BuyerAgentBDI extends MarketAgentBDI {
 			@Override
 			public void exceptionOccurred(Exception arg0) {
 				
-				System.out.println("No service provider found");
+				System.out.println("No service provider found exception: "+arg0);
 				
 				fut.setResult(new ArrayList <Proposal>());
 			}
@@ -185,7 +190,7 @@ public class BuyerAgentBDI extends MarketAgentBDI {
 	}
 	synchronized void handleProposalsWithAdequatePlan(ArrayList <Proposal> proposals,Demand demand){
 		
-		
+		chooseCheapestSuitedProposalPlan(proposals, demand);
 	}
 	
 	@Plan
@@ -206,5 +211,37 @@ public class BuyerAgentBDI extends MarketAgentBDI {
 			
 			//TODO continue here
 		}
+	}
+
+
+
+	@Plan(trigger=@Trigger(factchangeds="deadline"))
+	synchronized void tryToSatisfyNecessities(){
+		
+		askForPrices();
+		
+	}
+
+	@Override
+	synchronized public void executeBid(Bid bid) {
+		
+		System.out.println("Buyer executing Demand");
+		
+		if(!bid.getClass().equals(Demand.class))return;
+		if(!bid.getProduct().equals(getProduct()))return;
+		if(!bid.getIssuer().equals(this))return;
+		
+		quantity-=bid.getQuantity();
+		if(quantity==0)quantity=-1;//if all need satisfied then just set quantity to -1 (so that a new need will be triggered latter)
+		
+		System.out.println("Executed Demand. Now with necessary quantity "+quantity);
+		
+		
+		
+		
+		
+		
+		
+		
 	}
 }

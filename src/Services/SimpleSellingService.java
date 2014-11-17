@@ -15,6 +15,7 @@ public class SimpleSellingService implements SellingService{
 	
 	public synchronized Proposal proposalForDemand(Demand d) {
 		
+		System.out.println("Called");
 		if(d==null || agent==null)return null;
 		
 		return agent.proposalForDemand(d);

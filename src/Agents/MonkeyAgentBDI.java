@@ -5,7 +5,7 @@ import jadex.micro.annotation.AgentBody;
 import Products.Banana;
 
 @Agent
-public class Monkey extends BuyerAgentBDI {
+public class MonkeyAgentBDI extends BuyerAgentBDI {
 
 	
 	

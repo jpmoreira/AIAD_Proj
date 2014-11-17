@@ -11,5 +11,10 @@ public class Banana extends Product {
 		return singleton;
 		
 	}
+	
+	@Override
+	public String toString() {
+		return "Banana";
+	}
 
 }

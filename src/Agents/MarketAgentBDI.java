@@ -2,6 +2,7 @@ package Agents;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import General.Bid;
 import General.SealedProposal;
 import Products.Product;
 import jadex.bdiv3.annotation.Belief;
@@ -55,5 +56,5 @@ public abstract class MarketAgentBDI {
 
 	
 	
-	abstract public void executeSealedProposal(SealedProposal sp);
+	abstract public void executeBid(Bid sp);
 }

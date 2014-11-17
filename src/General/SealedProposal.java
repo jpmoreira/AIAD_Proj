@@ -8,7 +8,7 @@ public class SealedProposal {
 	Proposal proposal;
 	
 	
-	SealedProposal(Demand d,Proposal p){
+	public SealedProposal(Demand d,Proposal p){
 		
 		demand=d;
 		proposal=p;
@@ -17,6 +17,8 @@ public class SealedProposal {
 	
 	public synchronized void execute(){
 		
+		demand.issuer.executeBid(demand);
+		proposal.issuer.executeBid(proposal);
 		
 	}
 }

@@ -1,8 +1,12 @@
 package Agents;
+import java.util.TimerTask;
+
+import General.Bid;
 import General.Demand;
 import General.Proposal;
-import Products.Product;
+import General.Utilities;
 import Services.SellingService;
+import Services.SimpleSellingService;
 import jadex.micro.annotation.Agent;
 import jadex.micro.annotation.AgentBody;
 import jadex.micro.annotation.Description;
@@ -14,7 +18,7 @@ import jadex.micro.annotation.ProvidedServices;
 @Agent
 @Description("A seller agent")
 
-@ProvidedServices(@ProvidedService(type = SellingService.class,implementation=@Implementation(SellingService.class)))
+@ProvidedServices(@ProvidedService(type = SellingService.class,implementation=@Implementation(SimpleSellingService.class)))
 public class SellerAgentBDI extends MarketAgentBDI {
 
 	
@@ -66,17 +70,50 @@ public class SellerAgentBDI extends MarketAgentBDI {
 	@AgentBody
 	public synchronized void agentBody() {
 		System.out.println("Executing Seller");
+		
+		
+		production=Utilities.randInt(1, 20);
+		
+		System.out.println("Production set to "+production);
+		
+		periodicTask=new TimerTask() {
+			
+			@Override
+			public void run() {
+				nrProducts+=production;
+				System.out.println("Updating product quantity to "+nrProducts);
+			}
+		};
+		
+		super.agentBody();
 	}
 	
 	
 	
 	public synchronized Proposal proposalForDemand(Demand d){
 		
-		if(d==null || !d.getProduct().equals(product) || d.getQuantity()>nrProducts)return null;
+		if(d==null ||d.getProduct()==null || !d.getProduct().equals(product) || d.getQuantity()>nrProducts)return null;
 		
 		
-		return new Proposal(this);
+		return new Proposal(this,d.getQuantity());
 		
+		
+	}
+
+
+
+	@Override
+	public void executeBid(Bid bid) {
+		
+		System.out.println("Seller executing Proposal");
+		
+		if(!bid.getClass().equals(Proposal.class))return;
+		if(!bid.getProduct().equals(getProduct()))return;
+		if(bid.getQuantity()>getNrProducts())return;
+		if(!bid.getIssuer().equals(this))return;
+		
+		nrProducts-=bid.getQuantity();
+		System.out.println("Seller executed Proposal now with "+nrProducts+" products");
 		
 	}
 }
