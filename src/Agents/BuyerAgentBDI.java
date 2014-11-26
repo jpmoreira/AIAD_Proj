@@ -81,37 +81,38 @@ public class BuyerAgentBDI extends MarketAgentBDI {
 	synchronized public int getDeadline() {
 		return deadline;
 	}
-	@AgentBody
-	synchronized public void agentBody() {
-		periodicTask=new TimerTask() {
+	
+	@Plan(trigger=@Trigger(factchangeds="time"))
+	synchronized void updateStuff(){
+
+		
+		if(quantity<0){
 			
-			@Override
-			public void run() {
+			if(Utilities.tossCoin(0.1f)){
 				
-				if(quantity<0){
-					
-					if(Utilities.tossCoin(0.1f)){
-						
-						
-						
-						quantity=Utilities.randInt(1, 30);
-						deadline=Utilities.randInt(1, 50);
-						price=Utilities.randInt(1,100);
-						System.out.println("I have a need now of "+quantity+" "+product+" at "+price);
-						
-					}
-					
-				}
-				else{
-					
-					deadline--;
-					
-				}
+				
+				
+				quantity=Utilities.randInt(1, 30);
+				deadline=Utilities.randInt(1, 50);
+				price=Utilities.randInt(1,100);
+				System.out.println("I have a need now of "+quantity+" "+product+" at "+price);
 				
 			}
-		};
+			
+		}
+		else{
+			
+			deadline--;
+			
+		}
+		
+	
+	}
+	
+	
+	@AgentBody
+	synchronized public void agentBody() {
 
-		super.agentBody();
 	}
 	synchronized void changePricesAccordingly(){
 		

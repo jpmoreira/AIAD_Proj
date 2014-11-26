@@ -7,6 +7,8 @@ import General.Proposal;
 import General.Utilities;
 import Services.SellingService;
 import Services.SimpleSellingService;
+import jadex.bdiv3.annotation.Plan;
+import jadex.bdiv3.annotation.Trigger;
 import jadex.micro.annotation.Agent;
 import jadex.micro.annotation.AgentBody;
 import jadex.micro.annotation.Description;
@@ -67,6 +69,12 @@ public class SellerAgentBDI extends MarketAgentBDI {
 
 
 
+	@Plan(trigger=@Trigger(factchangeds="time"))
+	synchronized void updateStuff(){
+		nrProducts+=production;
+		System.out.println("Updating product quantity to "+nrProducts);
+	}
+	
 	@AgentBody
 	public synchronized void agentBody() {
 		System.out.println("Executing Seller");
@@ -75,15 +83,6 @@ public class SellerAgentBDI extends MarketAgentBDI {
 		production=Utilities.randInt(1, 20);
 		
 		System.out.println("Production set to "+production);
-		
-		periodicTask=new TimerTask() {
-			
-			@Override
-			public void run() {
-				nrProducts+=production;
-				System.out.println("Updating product quantity to "+nrProducts);
-			}
-		};
 		
 		super.agentBody();
 	}

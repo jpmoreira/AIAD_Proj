@@ -6,6 +6,8 @@ import General.Bid;
 import General.SealedProposal;
 import Products.Product;
 import jadex.bdiv3.annotation.Belief;
+import jadex.bdiv3.annotation.Plan;
+import jadex.bdiv3.annotation.Trigger;
 import jadex.micro.annotation.Agent;
 import jadex.micro.annotation.AgentBody;
 import jadex.micro.annotation.Description;
@@ -22,9 +24,9 @@ public abstract class MarketAgentBDI {
 	protected int price;
 	
 	
-	protected Timer t=new Timer();
+	@Belief(updaterate=1000)
+	protected long time=System.currentTimeMillis();
 	
-	protected TimerTask periodicTask=null;
 	
 	
 	
@@ -46,8 +48,6 @@ public abstract class MarketAgentBDI {
 	public synchronized void agentBody(){
 		
 		
-		if(periodicTask!=null)t.scheduleAtFixedRate(periodicTask, 0, 1000);
-		System.out.println("Running market agent");
 	}
 
 	synchronized public Product getProduct() {

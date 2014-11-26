@@ -11,7 +11,7 @@ public class MonkeyAgentBDI extends BuyerAgentBDI {
 	
 	@AgentBody
 	public synchronized void agentBody() {
-		product=Banana.product();
+		product=new Banana();
 		super.agentBody();
 	}
 }
