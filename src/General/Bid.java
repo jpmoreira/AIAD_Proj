@@ -1,18 +1,29 @@
 package General;
+import Agents.BuyerAgentBDI;
 import Agents.MarketAgentBDI;
+import Agents.SellerAgentBDI;
 import Products.Product;
 
 abstract public class Bid {
 	
 	
-	MarketAgentBDI issuer;
+	Object issuer;
 	Product product;
 	int price;
 	int quantity;
 	int timeRemaining;
 	
 	
-	 Bid(MarketAgentBDI is,Product pr,int pric,int qt,int time){
+	 Bid(BuyerAgentBDI is,Product pr,int pric,int qt,int time){
+		 
+		 issuer=is;
+		 product=pr;
+		 price=pric;
+		 quantity=qt;
+		 timeRemaining=time;
+	 }
+	 
+	 Bid(SellerAgentBDI is,Product pr,int pric,int qt,int time){
 		 
 		 issuer=is;
 		 product=pr;
@@ -23,7 +34,7 @@ abstract public class Bid {
 
 
 	 
-	 public MarketAgentBDI getIssuer() {
+	 public Object getIssuer() {
 		return issuer;
 	}
 	public void setIssuer(MarketAgentBDI issuer) {

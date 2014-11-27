@@ -24,6 +24,8 @@ import General.Bid;
 import General.Demand;
 import General.Proposal;
 import General.Utilities;
+import Products.Banana;
+import Products.Product;
 import Services.NegociationService;
 import Services.SellingService;
 
@@ -31,19 +33,45 @@ import Services.SellingService;
 @Description("A buyer agent")
 @RequiredServices(@RequiredService(name="SellingService", type=SellingService.class,
 binding=@Binding(scope=RequiredServiceInfo.SCOPE_PLATFORM)))
-public class BuyerAgentBDI extends MarketAgentBDI {
+public class BuyerAgentBDI  {
 
 	
 	@Belief
-	int quantity=-1;
+	public int quantity=-1;
 	
 	@Belief
-	int deadline;
+	public int deadline;
 	
 	
 	
 	@Agent
 	MicroAgent agent;
+	
+	public Product product;
+	
+	@Belief
+	public int price;
+	
+	
+	@Belief(updaterate=1000)
+	public long time=System.currentTimeMillis();
+	
+	
+	
+	synchronized public void setProduct(Product product) {
+		this.product = product;
+	}
+
+	public int getPrice(){
+		return price;
+	}
+
+
+	synchronized public Product getProduct() {
+		return product;
+	}
+
+	
 	
 
 
@@ -64,14 +92,14 @@ public class BuyerAgentBDI extends MarketAgentBDI {
 
 
 
-	public void setDeadline(int deadline) {
+	synchronized public void setDeadline(int deadline) {
 		this.deadline = deadline;
 	}
 
 
 
 
-	public int getQuantity() {
+	synchronized public int getQuantity() {
 		return quantity;
 	}
 
@@ -112,12 +140,14 @@ public class BuyerAgentBDI extends MarketAgentBDI {
 	
 	@AgentBody
 	synchronized public void agentBody() {
+		product=new Banana();
+		//super.agentBody();
 
 	}
 	synchronized void changePricesAccordingly(){
 		
 	
-		setPrice((int)(price*1.1));
+		price*=1.1;
 		
 	}
 	synchronized void askForPrices(){
@@ -223,7 +253,6 @@ public class BuyerAgentBDI extends MarketAgentBDI {
 		
 	}
 
-	@Override
 	synchronized public void executeBid(Bid bid) {
 		
 		System.out.println("Buyer executing Demand");

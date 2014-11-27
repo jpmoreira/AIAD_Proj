@@ -5,8 +5,10 @@ import General.Bid;
 import General.Demand;
 import General.Proposal;
 import General.Utilities;
+import Products.Product;
 import Services.SellingService;
 import Services.SimpleSellingService;
+import jadex.bdiv3.annotation.Belief;
 import jadex.bdiv3.annotation.Plan;
 import jadex.bdiv3.annotation.Trigger;
 import jadex.micro.annotation.Agent;
@@ -21,7 +23,7 @@ import jadex.micro.annotation.ProvidedServices;
 @Description("A seller agent")
 
 @ProvidedServices(@ProvidedService(type = SellingService.class,implementation=@Implementation(SimpleSellingService.class)))
-public class SellerAgentBDI extends MarketAgentBDI {
+public class SellerAgentBDI  {
 
 	
 	int stockCapacity;
@@ -29,6 +31,32 @@ public class SellerAgentBDI extends MarketAgentBDI {
 	int nrProducts;
 	
 	int production;
+	
+public Product product;
+	
+	@Belief
+	public int price;
+	
+	
+	@Belief(updaterate=1000)
+	public long time=System.currentTimeMillis();
+	
+	
+	
+	synchronized public void setProduct(Product product) {
+		this.product = product;
+	}
+
+	public int getPrice(){
+		return price;
+	}
+
+
+	synchronized public Product getProduct() {
+		return product;
+	}
+
+	
 
 	
 	
@@ -84,7 +112,6 @@ public class SellerAgentBDI extends MarketAgentBDI {
 		
 		System.out.println("Production set to "+production);
 		
-		super.agentBody();
 	}
 	
 	
@@ -101,7 +128,6 @@ public class SellerAgentBDI extends MarketAgentBDI {
 
 
 
-	@Override
 	public void executeBid(Bid bid) {
 		
 		System.out.println("Seller executing Proposal");

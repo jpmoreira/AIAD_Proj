@@ -1,5 +1,8 @@
 package General;
 
+import Agents.BuyerAgentBDI;
+import Agents.SellerAgentBDI;
+
 
 public class SealedProposal {
 
@@ -17,8 +20,14 @@ public class SealedProposal {
 	
 	public synchronized void execute(){
 		
-		demand.issuer.executeBid(demand);
-		proposal.issuer.executeBid(proposal);
+		
+		if(demand.issuer instanceof BuyerAgentBDI){
+			((BuyerAgentBDI)demand.issuer).executeBid(demand);
+		}
+		else if(demand.issuer instanceof SellerAgentBDI){
+			((SellerAgentBDI)demand.issuer).executeBid(demand);
+		}
+		
 		
 	}
 }

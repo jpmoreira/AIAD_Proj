@@ -18,15 +18,14 @@ import jadex.micro.annotation.Description;
 public abstract class MarketAgentBDI {
 	
 	
-	protected Product product;
+	public Product product;
 	
-	
-	protected int price;
+	@Belief
+	public int price;
 	
 	
 	@Belief(updaterate=1000)
-	protected long time=System.currentTimeMillis();
-	
+	public long time=System.currentTimeMillis();
 	
 	
 	
@@ -34,21 +33,10 @@ public abstract class MarketAgentBDI {
 		this.product = product;
 	}
 
-	@Belief
-	synchronized public void setPrice(int price) {
-		this.price = price;
-	}
-
-	@Belief
-	synchronized public int getPrice() {
+	public int getPrice(){
 		return price;
 	}
 
-	@AgentBody
-	public synchronized void agentBody(){
-		
-		
-	}
 
 	synchronized public Product getProduct() {
 		return product;
@@ -57,4 +45,10 @@ public abstract class MarketAgentBDI {
 	
 	
 	abstract public void executeBid(Bid sp);
+
+	@AgentBody
+	public synchronized void agentBody(){
+		
+		
+	}
 }
