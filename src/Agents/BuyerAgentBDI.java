@@ -18,21 +18,19 @@ import jadex.micro.annotation.RequiredServices;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.TimerTask;
-
 import General.Bid;
 import General.Demand;
 import General.Proposal;
+import General.SealedProposal;
 import General.Utilities;
 import Products.Banana;
 import Products.Product;
-import Services.NegociationService;
 import Services.SellingService;
 
 @Agent
 @Description("A buyer agent")
 @RequiredServices(@RequiredService(name="SellingService", type=SellingService.class,
-binding=@Binding(scope=RequiredServiceInfo.SCOPE_PLATFORM)))
+binding=@Binding(scope=RequiredServiceInfo.SCOPE_PLATFORM),multiple=true))
 public class BuyerAgentBDI  {
 
 	
@@ -84,19 +82,19 @@ public class BuyerAgentBDI  {
 		}
 	};
 
-
+/*
 	public void setQuantity(int quantity) {
 		this.quantity = quantity;
 	}
 
+*/
 
-
-
+/*
 	synchronized public void setDeadline(int deadline) {
 		this.deadline = deadline;
 	}
 
-
+*/
 
 
 	synchronized public int getQuantity() {
@@ -174,12 +172,27 @@ public class BuyerAgentBDI  {
 	}
 	synchronized public Future <ArrayList <Proposal> > askForBids(final Demand demand) {
 		
-		System.out.println("Started negociation");
+		System.out.println("Started negociation for price ="+price+" and quantity ="+quantity);
 		
 		final Future <ArrayList<Proposal> > fut=new  Future<ArrayList <Proposal> >(); 
 		
 		IFuture<Collection<SellingService> > sellers=agent.getServiceContainer().getRequiredServices("SellingService");
 		
+		
+		
+		fut.addResultListener(new DefaultResultListener<ArrayList<Proposal>>() {
+
+			@Override
+			public void resultAvailable(ArrayList<Proposal> proposals) {
+				
+				
+				handleProposalsWithAdequatePlan(proposals, demand);
+			}
+			
+			
+		});
+		
+
 		
 		sellers.addResultListener(new IResultListener<Collection<SellingService>>() {
 			
@@ -187,16 +200,16 @@ public class BuyerAgentBDI  {
 			public void resultAvailable(Collection<SellingService> sellers) {
 				System.out.println("Found "+sellers.size()+" sellers");
 				
+				
 				ArrayList<Proposal> proposals=new ArrayList<Proposal>();
 				
 				Iterator<SellingService> it=sellers.iterator();
 				
 				while(it.hasNext()){
 					SellingService s=it.next();
-					
-					System.out.println("Will get proposal for demand "+demand+" next is "+s);
+					System.out.println("Found "+s);	
 					Proposal p=s.proposalForDemand(demand);
-					System.out.println("Got proposal "+p);
+					//System.out.println("Got proposal at price "+p.getPrice());
 					if(p==null)continue;
 					proposals.add(p);
 					
@@ -216,6 +229,7 @@ public class BuyerAgentBDI  {
 			}
 		});
 		
+		
 		return fut;
 
 	}
@@ -227,6 +241,8 @@ public class BuyerAgentBDI  {
 	@Plan
 	synchronized void chooseCheapestSuitedProposalPlan(ArrayList <Proposal> proposals,Demand demand){
 		
+		
+		System.out.println("Choosing cheapest one");
 		Proposal best=null;
 		
 		for(int i=0;i<proposals.size();i++){
@@ -240,7 +256,10 @@ public class BuyerAgentBDI  {
 		
 		if(best!=null){
 			
-			//TODO continue here
+			System.out.println("Needed "+quantity);
+			SealedProposal s=new SealedProposal(demand, best);
+			s.execute();
+			System.out.println("Need "+quantity);
 		}
 	}
 

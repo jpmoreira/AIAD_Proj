@@ -21,12 +21,17 @@ public class SealedProposal {
 	public synchronized void execute(){
 		
 		
+		
+		
 		if(demand.issuer instanceof BuyerAgentBDI){
 			((BuyerAgentBDI)demand.issuer).executeBid(demand);
 		}
-		else if(demand.issuer instanceof SellerAgentBDI){
-			((SellerAgentBDI)demand.issuer).executeBid(demand);
+		
+		if(proposal.issuer instanceof SellerAgentBDI){
+			((SellerAgentBDI)proposal.issuer).executeBid(proposal);
 		}
+		
+		
 		
 		
 	}

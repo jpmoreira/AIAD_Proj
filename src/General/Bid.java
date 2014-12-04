@@ -1,6 +1,5 @@
 package General;
 import Agents.BuyerAgentBDI;
-import Agents.MarketAgentBDI;
 import Agents.SellerAgentBDI;
 import Products.Product;
 
@@ -37,7 +36,7 @@ abstract public class Bid {
 	 public Object getIssuer() {
 		return issuer;
 	}
-	public void setIssuer(MarketAgentBDI issuer) {
+	public void setIssuer(Object issuer) {
 		this.issuer = issuer;
 	}
 	public Product getProduct() {
