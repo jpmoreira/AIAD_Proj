@@ -1,11 +1,11 @@
 package General;
 
 import Agents.BuyerAgentBDI;
-import Products.Product;
+//import Products.Product;
 
 public class Demand extends Bid {
 
-	public Demand(BuyerAgentBDI is, Product pr, int pric, int qt, int time) {
+	public Demand(BuyerAgentBDI is, String pr, int pric, int qt, int time) {
 		super(is, pr, pric, qt, time);
 	}
 	

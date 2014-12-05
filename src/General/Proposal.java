@@ -1,11 +1,11 @@
 package General;
 
 import Agents.SellerAgentBDI;
-import Products.Product;
+//import Products.Product;
 
 public class Proposal extends Bid {
 
-	Proposal(SellerAgentBDI is, Product pr, int pric, int qt, int time) {
+	Proposal(SellerAgentBDI is, String pr, int pric, int qt, int time) {
 		super(is, pr, pric, qt, time);
 	}
 	

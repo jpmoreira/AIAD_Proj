@@ -5,9 +5,9 @@ import General.Bid;
 import General.Demand;
 import General.Proposal;
 import General.Utilities;
-import Goals.MaximizeProfitGoal;
-import Products.Banana;
-import Products.Product;
+//import Goals.MaximizeProfitGoal;
+//import Products.Banana;
+//import Products.Product;
 import Services.SellingService;
 import Services.SimpleSellingService;
 import jadex.bdiv3.BDIAgent;
@@ -16,6 +16,8 @@ import jadex.bdiv3.annotation.Plan;
 import jadex.bdiv3.annotation.Trigger;
 import jadex.micro.annotation.Agent;
 import jadex.micro.annotation.AgentBody;
+import jadex.micro.annotation.Arguments;
+import jadex.micro.annotation.Argument;
 import jadex.micro.annotation.Description;
 import jadex.micro.annotation.Implementation;
 import jadex.micro.annotation.ProvidedService;
@@ -24,12 +26,17 @@ import jadex.micro.annotation.ProvidedServices;
 
 @Agent
 @Description("A seller agent")
-
+@Arguments({
+	@Argument(name="Stock Capacity", clazz=Integer.class, defaultvalue="100"),
+	@Argument(name="Production", clazz=Integer.class, defaultvalue="5"),
+	@Argument(name="Base Price", clazz=Integer.class, defaultvalue="10"),
+	@Argument(name="Product", clazz=String.class, defaultvalue="Banana")
+	})
 @ProvidedServices(@ProvidedService(type = SellingService.class,implementation=@Implementation(SimpleSellingService.class)))
 public class SellerAgentBDI  {
 
 	
-	int stockCapacity=100;
+	int stockCapacity;
 	
 	int nrProducts;
 	
@@ -39,7 +46,7 @@ public class SellerAgentBDI  {
 	protected BDIAgent agent;
 
 	
-	public Product product;
+	public String product;
 	
 	@Belief
 	public int price;
@@ -56,7 +63,7 @@ public class SellerAgentBDI  {
 	
 	
 	
-	synchronized public void setProduct(Product product) {
+	synchronized public void setProduct(String product) {
 		this.product = product;
 	}
 
@@ -65,7 +72,7 @@ public class SellerAgentBDI  {
 	}
 
 
-	synchronized public Product getProduct() {
+	synchronized public String getProduct() {
 		return product;
 	}
 
@@ -136,8 +143,12 @@ public class SellerAgentBDI  {
 	@AgentBody
 	public synchronized void agentBody() {
 		
-		product=new Banana();
-		production=Utilities.randInt(1, 20);
+		//product=new Banana();
+		
+		stockCapacity = (int) agent.getArgument("Stock Capacity");
+		production = (int) agent.getArgument("Production");
+		basePrice = (int) agent.getArgument("Base Price");
+		product = (String) agent.getArgument("Product");
 		
 		//int meanProfit= (int) agent.dispatchTopLevelGoal(new MaximizeProfitGoal()).get();
 		
@@ -148,7 +159,7 @@ public class SellerAgentBDI  {
 	public synchronized Proposal proposalForDemand(Demand d){
 		
 		System.out.println("" + this + " - Quantity "+ nrProducts + " with price " + price);
-		if(d==null ||d.getProduct()==null || !d.getProduct().equals(product) || d.getQuantity()>nrProducts)return null;
+		if(d==null ||d.getProduct()==null || !d.getProduct().equals(product) || d.getQuantity()>nrProducts) return null;
 		
 		
 		return new Proposal(this,d.getQuantity());

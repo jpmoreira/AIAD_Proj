@@ -10,6 +10,8 @@ import jadex.commons.future.IResultListener;
 import jadex.micro.MicroAgent;
 import jadex.micro.annotation.Agent;
 import jadex.micro.annotation.AgentBody;
+import jadex.micro.annotation.Argument;
+import jadex.micro.annotation.Arguments;
 import jadex.micro.annotation.Binding;
 import jadex.micro.annotation.Description;
 import jadex.micro.annotation.RequiredService;
@@ -18,17 +20,22 @@ import jadex.micro.annotation.RequiredServices;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+
 import General.Bid;
 import General.Demand;
 import General.Proposal;
 import General.SealedProposal;
 import General.Utilities;
-import Products.Banana;
-import Products.Product;
+//import Products.Banana;
+//import Products.Product;
 import Services.SellingService;
 
 @Agent
 @Description("A buyer agent")
+@Arguments({
+	@Argument(name="Maximum Buying Price", clazz=Integer.class, defaultvalue="10"),
+	@Argument(name="Product", clazz=String.class, defaultvalue="Banana")
+	})
 @RequiredServices(@RequiredService(name="SellingService", type=SellingService.class,
 binding=@Binding(scope=RequiredServiceInfo.SCOPE_PLATFORM),multiple=true))
 public class BuyerAgentBDI  {
@@ -45,7 +52,7 @@ public class BuyerAgentBDI  {
 	@Agent
 	MicroAgent agent;
 	
-	public Product product;
+	public String product;
 	
 	@Belief
 	public int price;
@@ -56,7 +63,7 @@ public class BuyerAgentBDI  {
 	
 	
 	
-	synchronized public void setProduct(Product product) {
+	synchronized public void setProduct(String product) {
 		this.product = product;
 	}
 
@@ -65,7 +72,7 @@ public class BuyerAgentBDI  {
 	}
 
 
-	synchronized public Product getProduct() {
+	synchronized public String getProduct() {
 		return product;
 	}
 
@@ -138,8 +145,11 @@ public class BuyerAgentBDI  {
 	
 	@AgentBody
 	synchronized public void agentBody() {
-		product=new Banana();
+		//product=new Banana();
 		//super.agentBody();
+		
+		price = (int) agent.getArgument("Maximum Buying Price");
+		product = (String) agent.getArgument("Product");
 
 	}
 	synchronized void changePricesAccordingly(){
