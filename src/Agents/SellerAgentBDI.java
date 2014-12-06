@@ -5,13 +5,16 @@ import General.Bid;
 import General.Demand;
 import General.Proposal;
 import General.Utilities;
-import Goals.MaximizeProfitGoal;
 import Products.Banana;
 import Products.Product;
 import Services.SellingService;
 import Services.SimpleSellingService;
 import jadex.bdiv3.BDIAgent;
 import jadex.bdiv3.annotation.Belief;
+import jadex.bdiv3.annotation.Goal;
+import jadex.bdiv3.annotation.Goal.ExcludeMode;
+import jadex.bdiv3.annotation.GoalMaintainCondition;
+import jadex.bdiv3.annotation.GoalTargetCondition;
 import jadex.bdiv3.annotation.Plan;
 import jadex.bdiv3.annotation.Trigger;
 import jadex.micro.annotation.Agent;
@@ -29,17 +32,35 @@ import jadex.micro.annotation.ProvidedServices;
 public class SellerAgentBDI  {
 
 	
-	int stockCapacity=100;
+	//______________ Constants __________________
+	final static int cycleDuration=10000;
+	final static double stockLoadMinimum=0.1;
+	final static double stockLoadMaximum=0.9;
 	
-	int nrProducts;
+	final static double stockLoadTargetMinimum=0.3;
+	final static double stockLoadTargetMaximum=0.7;
 	
-	int production;
+	//______________ Other Variable _______________
+	
+	public Product product;
+	public long startTime=System.currentTimeMillis();
+	public ArrayList<Integer> cycleProfits=new ArrayList<Integer>();
+	
+	
+	
+	
+	//_______________ Agent ______________________
 	
 	@Agent
 	protected BDIAgent agent;
-
 	
-	public Product product;
+//___________________ Beliefs _______________________
+	
+	@Belief
+	int production;
+	
+	@Belief
+	int maxProduction;
 	
 	@Belief
 	public int price;
@@ -47,68 +68,74 @@ public class SellerAgentBDI  {
 	@Belief
 	public int basePrice=10;
 	
-	public long startTime=System.currentTimeMillis();
-	
-	
 	@Belief(updaterate=1000)
 	public long time=System.currentTimeMillis();
 	
+	@Belief
+	public long timeToChangeCycle=time+cycleDuration;
 	
+	@Belief(dynamic=true)
+	public boolean shouldChangeCycle=time>timeToChangeCycle;
 	
+	@Belief
+	public Integer overallProfit=0;
 	
-	synchronized public void setProduct(Product product) {
-		this.product = product;
-	}
-
-	public int getPrice(){
-		return price;
-	}
-
-
-	synchronized public Product getProduct() {
-		return product;
-	}
-
+	@Belief
+	int stockCapacity=100;
 	
+	@Belief
+	int nrProducts;
 	
-	public int getStockCapacity() {
-		return stockCapacity;
-	}
-
-
-
-	public void setStockCapacity(int stockCapacity) {
-		this.stockCapacity = stockCapacity;
-	}
-
-
-
-	public int getProduction() {
-		return production;
-	}
-
-
-
-	public void setProduction(int production) {
-		this.production = production;
-	}
-
-
-
-	//for testing purposes
-	public void setNrProducts(int nrProducts) {
-		this.nrProducts = nrProducts;
-	}
-
-
-
-	public int getNrProducts() {
-		return nrProducts;
-	}
-
-
+	@Belief(dynamic=true)
+	public double stockLoad=nrProducts/(double)stockCapacity;
 	
+	//__________________ Proposal Handling _____________________________
+	
+	public synchronized Proposal proposalForDemand(Demand d){
+		
+		System.out.println("" + this + " - Quantity "+ nrProducts + " with price " + price);
+		if(d==null ||d.getProduct()==null || !d.getProduct().equals(product) || d.getQuantity()>nrProducts)return null;
+		
+		
+		return new Proposal(this,d.getQuantity());
+		
+		
+	}
 
+	public void executeBid(Bid bid) {
+		
+		System.out.println("Seller executing Proposal");
+		
+		
+		if(!(bid instanceof Proposal))return;
+		
+		if(!bid.getProduct().equals(product))return;
+		
+		if(bid.getQuantity()>nrProducts)return;
+
+		if(!bid.getIssuer().equals(this))return;
+		
+		System.out.println("Quantity before Proposal "+nrProducts + " with price " + price);
+		nrProducts-=bid.getQuantity();
+		System.out.println("Seller executed Proposal now with "+nrProducts+" products");
+		
+	}
+	
+	//__________________ Agent Body _____________________________
+	
+	@AgentBody
+	public synchronized void agentBody() {
+		
+		product=new Banana();
+		production=Utilities.randInt(1, 20);
+		
+		//int meanProfit= (int) agent.dispatchTopLevelGoal(new MaximizeProfitGoal(cycleProfits,overallProfit)).get();
+	
+		agent.dispatchTopLevelGoal(new HandleStockQuantityGoal());
+	}
+	
+	//_____________________ Plans _____________________________
+	
 	@Plan(trigger=@Trigger(factchangeds="time"))
 	synchronized void updateStuff(){
 		nrProducts+=production;
@@ -130,50 +157,61 @@ public class SellerAgentBDI  {
 		
 	}
 	
-	
- 
-	
-	@AgentBody
-	public synchronized void agentBody() {
+	@Plan(trigger=@Trigger(factchangeds="shouldChangeCycle"))
+	synchronized void changeCyclePlan(){
 		
-		product=new Banana();
-		production=Utilities.randInt(1, 20);
+		if(!shouldChangeCycle)return;//if not time to change Cycle do nothing
 		
-		//int meanProfit= (int) agent.dispatchTopLevelGoal(new MaximizeProfitGoal()).get();
+		cycleProfits.add(new Integer(overallProfit));
 		
-	}
-	
-	
-	
-	public synchronized Proposal proposalForDemand(Demand d){
+		System.out.println("added profit this cycle "+overallProfit +" stockLoad "+stockLoad);
 		
-		System.out.println("" + this + " - Quantity "+ nrProducts + " with price " + price);
-		if(d==null ||d.getProduct()==null || !d.getProduct().equals(product) || d.getQuantity()>nrProducts)return null;
-		
-		
-		return new Proposal(this,d.getQuantity());
-		
-		
+		timeToChangeCycle=time+cycleDuration;
 	}
 
-
-
-	public void executeBid(Bid bid) {
+	@Plan(trigger=@Trigger(goals=HandleStockQuantityGoal.class))
+	synchronized void adaptProductionToStock(){
 		
-		System.out.println("Seller executing Proposal");
+		if(stockLoad>=stockLoadTargetMaximum){
+			
+			double incl=-5./3.*maxProduction;
+			double b=5./3.*maxProduction;
+			
+			production=(int)(incl*stockLoad+b);
+			
+		}
+		else if(stockLoad<=stockLoadTargetMinimum){
+			
+			double incl=-5./3.*maxProduction;
+			double b=maxProduction;
+			
+			production=(int)(incl*stockLoad+b);
+			
+		}
 		
-		
-		if(!(bid instanceof Proposal))return;
-		
-		if(!bid.getProduct().equals(getProduct()))return;
-		
-		if(bid.getQuantity()>getNrProducts())return;
-
-		if(!bid.getIssuer().equals(this))return;
-		
-		System.out.println("Quantity before Proposal "+nrProducts + " with price " + price);
-		nrProducts-=bid.getQuantity();
-		System.out.println("Seller executed Proposal now with "+nrProducts+" products");
+		System.out.println("Production set to "+production+" to stockLoad="+stockLoad+" (production="+production+")");
 		
 	}
+
+
+	//_____________________ Goals _____________________________
+	
+	@Goal(excludemode=ExcludeMode.Never)
+	public class HandleStockQuantityGoal {
+		
+		
+		
+		@GoalMaintainCondition(beliefs="stockLoad")
+		protected boolean maintain() {
+			return stockLoad<=stockLoadMaximum && stockLoad>=stockLoadMinimum;
+		}
+
+		@GoalTargetCondition(beliefs="stockLoad")
+		protected boolean target() {
+			return stockLoad>=0.30 && stockLoad<=0.70;
+			
+		}
+
+	}
+
 }

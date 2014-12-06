@@ -82,21 +82,6 @@ public class BuyerAgentBDI  {
 		}
 	};
 
-/*
-	public void setQuantity(int quantity) {
-		this.quantity = quantity;
-	}
-
-*/
-
-/*
-	synchronized public void setDeadline(int deadline) {
-		this.deadline = deadline;
-	}
-
-*/
-
-
 	synchronized public int getQuantity() {
 		return quantity;
 	}
