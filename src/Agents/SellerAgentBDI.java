@@ -33,7 +33,7 @@ public class SellerAgentBDI  {
 
 	
 	//______________ Constants __________________
-	final static int cycleDuration=10000;
+	
 	final static double stockLoadMinimum=0.1;
 	final static double stockLoadMaximum=0.9;
 	
@@ -45,9 +45,6 @@ public class SellerAgentBDI  {
 	public Product product;
 	public long startTime=System.currentTimeMillis();
 	public ArrayList<Integer> cycleProfits=new ArrayList<Integer>();
-	
-	
-	
 	
 	//_______________ Agent ______________________
 	
@@ -71,11 +68,6 @@ public class SellerAgentBDI  {
 	@Belief(updaterate=1000)
 	public long time=System.currentTimeMillis();
 	
-	@Belief
-	public long timeToChangeCycle=time+cycleDuration;
-	
-	@Belief(dynamic=true)
-	public boolean shouldChangeCycle=time>timeToChangeCycle;
 	
 	@Belief
 	public Integer overallProfit=0;
@@ -155,18 +147,6 @@ public class SellerAgentBDI  {
 	
 		
 		
-	}
-	
-	@Plan(trigger=@Trigger(factchangeds="shouldChangeCycle"))
-	synchronized void changeCyclePlan(){
-		
-		if(!shouldChangeCycle)return;//if not time to change Cycle do nothing
-		
-		cycleProfits.add(new Integer(overallProfit));
-		
-		System.out.println("added profit this cycle "+overallProfit +" stockLoad "+stockLoad);
-		
-		timeToChangeCycle=time+cycleDuration;
 	}
 
 	@Plan(trigger=@Trigger(goals=HandleStockQuantityGoal.class))
