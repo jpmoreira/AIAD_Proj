@@ -1,12 +1,8 @@
 package Agents;
 import java.util.ArrayList;
-
 import General.Bid;
 import General.Demand;
 import General.Proposal;
-import General.Utilities;
-import Products.Banana;
-import Products.Product;
 import Services.SellingService;
 import Services.SimpleSellingService;
 import jadex.bdiv3.BDIAgent;
@@ -19,6 +15,8 @@ import jadex.bdiv3.annotation.Plan;
 import jadex.bdiv3.annotation.Trigger;
 import jadex.micro.annotation.Agent;
 import jadex.micro.annotation.AgentBody;
+import jadex.micro.annotation.Arguments;
+import jadex.micro.annotation.Argument;
 import jadex.micro.annotation.Description;
 import jadex.micro.annotation.Implementation;
 import jadex.micro.annotation.ProvidedService;
@@ -27,13 +25,19 @@ import jadex.micro.annotation.ProvidedServices;
 
 @Agent
 @Description("A seller agent")
-
+@Arguments({
+	@Argument(name="Stock Capacity", clazz=Integer.class, defaultvalue="100"),
+	@Argument(name="Production", clazz=Integer.class, defaultvalue="5"),
+	@Argument(name="Base Price", clazz=Integer.class, defaultvalue="10"),
+	@Argument(name="Product", clazz=String.class, defaultvalue="Banana")
+	})
 @ProvidedServices(@ProvidedService(type = SellingService.class,implementation=@Implementation(SimpleSellingService.class)))
 public class SellerAgentBDI  {
 
 	
+
 	//______________ Constants __________________
-	
+
 	final static double stockLoadMinimum=0.1;
 	final static double stockLoadMaximum=0.9;
 	
@@ -42,15 +46,16 @@ public class SellerAgentBDI  {
 	
 	//______________ Other Variable _______________
 	
-	public Product product;
 	public long startTime=System.currentTimeMillis();
 	public ArrayList<Integer> cycleProfits=new ArrayList<Integer>();
+	public String product;
 	
 	//_______________ Agent ______________________
 	
 	@Agent
 	protected BDIAgent agent;
 	
+
 //___________________ Beliefs _______________________
 	
 	@Belief
@@ -58,6 +63,7 @@ public class SellerAgentBDI  {
 	
 	@Belief
 	int maxProduction;
+
 	
 	@Belief
 	public int price;
@@ -118,11 +124,11 @@ public class SellerAgentBDI  {
 	@AgentBody
 	public synchronized void agentBody() {
 		
-		product=new Banana();
-		production=Utilities.randInt(1, 20);
+		stockCapacity = (int) agent.getArgument("Stock Capacity");
+		production = (int) agent.getArgument("Production");
+		basePrice = (int) agent.getArgument("Base Price");
+		product = (String) agent.getArgument("Product");
 		
-		//int meanProfit= (int) agent.dispatchTopLevelGoal(new MaximizeProfitGoal(cycleProfits,overallProfit)).get();
-	
 		agent.dispatchTopLevelGoal(new HandleStockQuantityGoal());
 	}
 	
@@ -152,6 +158,7 @@ public class SellerAgentBDI  {
 	@Plan(trigger=@Trigger(goals=HandleStockQuantityGoal.class))
 	synchronized void adaptProductionToStock(){
 		
+
 		if(stockLoad>=stockLoadTargetMaximum){
 			
 			double incl=-5./3.*maxProduction;
@@ -168,10 +175,13 @@ public class SellerAgentBDI  {
 			production=(int)(incl*stockLoad+b);
 			
 		}
-		
 		System.out.println("Production set to "+production+" to stockLoad="+stockLoad+" (production="+production+")");
+
 		
 	}
+	
+	
+
 
 
 	//_____________________ Goals _____________________________

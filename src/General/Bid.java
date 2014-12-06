@@ -1,19 +1,19 @@
 package General;
 import Agents.BuyerAgentBDI;
 import Agents.SellerAgentBDI;
-import Products.Product;
+//import Products.Product;
 
 abstract public class Bid {
 	
 	
 	Object issuer;
-	Product product;
+	String product;
 	int price;
 	int quantity;
 	int timeRemaining;
 	
 	
-	 Bid(BuyerAgentBDI is,Product pr,int pric,int qt,int time){
+	 Bid(BuyerAgentBDI is,String pr,int pric,int qt,int time){
 		 
 		 issuer=is;
 		 product=pr;
@@ -22,7 +22,7 @@ abstract public class Bid {
 		 timeRemaining=time;
 	 }
 	 
-	 Bid(SellerAgentBDI is,Product pr,int pric,int qt,int time){
+	 Bid(SellerAgentBDI is,String pr,int pric,int qt,int time){
 		 
 		 issuer=is;
 		 product=pr;
@@ -39,10 +39,10 @@ abstract public class Bid {
 	public void setIssuer(Object issuer) {
 		this.issuer = issuer;
 	}
-	public Product getProduct() {
+	public String getProduct() {
 		return product;
 	}
-	public void setProduct(Product product) {
+	public void setProduct(String product) {
 		this.product = product;
 	}
 	public int getPrice() {
