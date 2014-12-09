@@ -1,8 +1,11 @@
 package Agents;
 import java.util.ArrayList;
+
 import General.Bid;
 import General.Demand;
 import General.Proposal;
+import General.QLearner;
+import General.QLearner.Action;
 import Services.SellingService;
 import Services.SimpleSellingService;
 import jadex.bdiv3.BDIAgent;
@@ -44,11 +47,18 @@ public class SellerAgentBDI  {
 	final static double stockLoadTargetMinimum=0.3;
 	final static double stockLoadTargetMaximum=0.7;
 	
+	final static int windowSize=5;//the window size for the Q learning algorithm
+	final static int softMaxTime=1000;
+	
+	
 	//______________ Other Variable _______________
 	
 	public long startTime=System.currentTimeMillis();
 	public ArrayList<Integer> cycleProfits=new ArrayList<Integer>();
 	public String product;
+	public QLearner q;
+	public Action lastActionTaken;
+	
 	
 	//_______________ Agent ______________________
 	
@@ -63,7 +73,6 @@ public class SellerAgentBDI  {
 	
 	@Belief
 	int maxProduction;
-
 	
 	@Belief
 	public int price;
@@ -73,7 +82,6 @@ public class SellerAgentBDI  {
 	
 	@Belief(updaterate=1000)
 	public long time=System.currentTimeMillis();
-	
 	
 	@Belief
 	public Integer overallProfit=0;
@@ -87,20 +95,30 @@ public class SellerAgentBDI  {
 	@Belief(dynamic=true)
 	public double stockLoad=nrProducts/(double)stockCapacity;
 	
+	@Belief
+	public int requests=0;
+	
+	@Belief
+	public int earned=0;
+	
+	@Belief(dynamic=true)
+	public boolean windowChanged=requests%windowSize==0;
+	
 	//__________________ Proposal Handling _____________________________
 	
 	public synchronized Proposal proposalForDemand(Demand d){
+		
+		requests++;
 		
 		System.out.println("" + this + " - Quantity "+ nrProducts + " with price " + price);
 		if(d==null ||d.getProduct()==null || !d.getProduct().equals(product) || d.getQuantity()>nrProducts)return null;
 		
 		
 		return new Proposal(this,d.getQuantity());
-		
-		
 	}
 
 	public void executeBid(Bid bid) {
+		
 		
 		System.out.println("Seller executing Proposal");
 		
@@ -115,6 +133,7 @@ public class SellerAgentBDI  {
 		
 		System.out.println("Quantity before Proposal "+nrProducts + " with price " + price);
 		nrProducts-=bid.getQuantity();
+		earned+=bid.getQuantity()*bid.getPrice();
 		System.out.println("Seller executed Proposal now with "+nrProducts+" products");
 		
 	}
@@ -125,11 +144,14 @@ public class SellerAgentBDI  {
 	public synchronized void agentBody() {
 		
 		stockCapacity = (int) agent.getArgument("Stock Capacity");
-		production = (int) agent.getArgument("Production");
+		production = (int) agent.getArgument("Production");//set production to the max production
+		maxProduction=(int) agent.getArgument("Production");
 		basePrice = (int) agent.getArgument("Base Price");
 		product = (String) agent.getArgument("Product");
-		
+		q=new QLearner(2*basePrice,100*basePrice,basePrice,0.5,0.5,softMaxTime);
 		agent.dispatchTopLevelGoal(new HandleStockQuantityGoal());
+		price=q.currentPrice;
+		lastActionTaken=Action.Mantain;
 	}
 	
 	//_____________________ Plans _____________________________
@@ -143,6 +165,7 @@ public class SellerAgentBDI  {
 		float stockRatio=((float)nrProducts)/stockCapacity;
 		
 		
+		/*
 		if(stockRatio>0.8){
 			price=(int) (0.75*basePrice);
 		}
@@ -151,6 +174,7 @@ public class SellerAgentBDI  {
 		}
 		else price=basePrice;
 	
+		*/
 		
 		
 	}
@@ -175,15 +199,37 @@ public class SellerAgentBDI  {
 			production=(int)(incl*stockLoad+b);
 			
 		}
-		System.out.println("Production set to "+production+" to stockLoad="+stockLoad+" (production="+production+")");
+		//System.out.println("Production set to "+production+" to stockLoad="+stockLoad+" (production="+production+")");
 
 		
 	}
 	
+	@Plan(trigger=@Trigger(factchangeds="windowChanged"))
+	synchronized void updatePricingInfo(){
+		
+		if(!windowChanged)return;
+		
+		System.out.println("Window changed");
+		windowChanged=false;
+		
+		q.iterate(earned, lastActionTaken);
+		
+		price=q.currentPrice;
+		
+		lastActionTaken=q.action();
+		
+		price+=Action.Increase.value;
+		
+		
+		earned=0;
+		
+		
+		
+		
+		
+		
+	}
 	
-
-
-
 	//_____________________ Goals _____________________________
 	
 	@Goal(excludemode=ExcludeMode.Never)
