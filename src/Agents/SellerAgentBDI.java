@@ -110,9 +110,16 @@ public class SellerAgentBDI  {
 		
 		requests++;
 		
-		System.out.println("" + this + " - Quantity "+ nrProducts + " with price " + price);
+		System.out.println("" + this + " - Quantity "+ nrProducts + " with price " + price+ " for demand "+d
+				);
+		
+		System.out.println(d.getProduct()==null);
+		System.out.println(d.getProduct()==null);
+		
 		if(d==null ||d.getProduct()==null || !d.getProduct().equals(product) || d.getQuantity()>nrProducts)return null;
 		
+		
+		System.out.println("giving proposal");
 		
 		return new Proposal(this,d.getQuantity());
 	}

@@ -237,17 +237,23 @@ public class BuyerAgentBDI  {
 	synchronized void chooseCheapestSuitedProposalPlan(ArrayList <Proposal> proposals,Demand demand){
 		
 		
-		System.out.println("Choosing cheapest one");
+		System.out.println("Choosing cheapest one from "+proposals.size());
 		Proposal best=null;
 		
 		for(int i=0;i<proposals.size();i++){
+			System.out.println("0");
 			Proposal prop=proposals.get(i);
+			System.out.println("1");
 			if(!prop.getProduct().equals(demand.getProduct()))return;
+			System.out.println("2");
 			if(prop.getPrice()>demand.getPrice())return;
+			System.out.println("3");
 			if(prop.getQuantity()<demand.getQuantity())return;
+			System.out.println("4");
 			if(best==null|| best.getPrice()>prop.getPrice())best=prop;
 		}
 		
+		System.out.println("Run");
 		
 		if(best!=null){
 			

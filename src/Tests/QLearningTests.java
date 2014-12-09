@@ -140,5 +140,15 @@ public class QLearningTests {
 		
 		
 	}
+	
+	@Test
+	
+	public void test3(){
+		
+		String str1="Banana";
+		String str2="Banana";
+		assertTrue(str1.equals(str2));
+		
+	}
 
 }
