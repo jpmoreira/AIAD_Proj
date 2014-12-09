@@ -34,7 +34,7 @@ import Services.SellingService;
 @Description("A buyer agent")
 @Arguments({
 	@Argument(name="Maximum Buying Price", clazz=Integer.class, defaultvalue="10"),
-	@Argument(name="Product", clazz=String.class, defaultvalue="Banana")
+	@Argument(name="Product", clazz=String.class, defaultvalue="\"Banana\"")
 	})
 @RequiredServices(@RequiredService(name="SellingService", type=SellingService.class,
 binding=@Binding(scope=RequiredServiceInfo.SCOPE_PLATFORM),multiple=true))
@@ -241,15 +241,15 @@ public class BuyerAgentBDI  {
 		Proposal best=null;
 		
 		for(int i=0;i<proposals.size();i++){
-			System.out.println("0");
+			//System.out.println("0");
 			Proposal prop=proposals.get(i);
-			System.out.println("1");
+			//System.out.println("1");
 			if(!prop.getProduct().equals(demand.getProduct()))return;
-			System.out.println("2");
+			//System.out.println("2");
 			if(prop.getPrice()>demand.getPrice())return;
-			System.out.println("3");
+			//System.out.println("3");
 			if(prop.getQuantity()<demand.getQuantity())return;
-			System.out.println("4");
+			//System.out.println("4");
 			if(best==null|| best.getPrice()>prop.getPrice())best=prop;
 		}
 		
