@@ -19,6 +19,8 @@ import Services.SellingService;
 	})
 @RequiredServices(@RequiredService(name="SellingService", type=SellingService.class,
 binding=@Binding(scope=RequiredServiceInfo.SCOPE_PLATFORM),multiple=true))
-public class SteadyBuyer extends BuyerAgentBDI {
+public class SteadyBuyerAgentBDI extends BuyerAgentBDI {
+	
+	
 
 }

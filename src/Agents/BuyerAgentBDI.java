@@ -143,13 +143,6 @@ public class BuyerAgentBDI  {
 
 	//_____________________ Helper Methods ________________________________
 	
-	synchronized void changePricesAccordingly(){
-		
-	
-		price*=1.1;
-		
-	}
-	
 	synchronized void askForPrices(){
 		
 		
