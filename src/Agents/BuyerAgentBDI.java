@@ -41,65 +41,41 @@ binding=@Binding(scope=RequiredServiceInfo.SCOPE_PLATFORM),multiple=true))
 public class BuyerAgentBDI  {
 
 	
-	@Belief
-	public int quantity=-1;
-	
-	@Belief
-	public int deadline;
-	
-	
+	//________________ Other Variables _____________________________
 	
 	@Agent
 	MicroAgent agent;
 	
 	public String product;
 	
+	//__________________ Beliefs _____________________________
+	
+	@Belief
+	public int quantity=-1;
+	
+	@Belief
+	public int deadline;
+	
 	@Belief
 	public int price;
-	
 	
 	@Belief(updaterate=1000)
 	public long time=System.currentTimeMillis();
 	
+	//__________________ Agent Body _____________________________
 	
-	
-	synchronized public void setProduct(String product) {
-		this.product = product;
-	}
+	@AgentBody
+	synchronized public void agentBody() {
+		//product=new Banana();
+		//super.agentBody();
+		
+		price = (int) agent.getArgument("Maximum Buying Price");
+		product = (String) agent.getArgument("Product");
 
-	public int getPrice(){
-		return price;
-	}
-
-
-	synchronized public String getProduct() {
-		return product;
-	}
-
-	
-	
-
-
-	DefaultResultListener<ArrayList<Proposal> > proposalListener=new DefaultResultListener<ArrayList<Proposal>>() {
-
-		@Override
-		public void resultAvailable(ArrayList<Proposal> arg0) {
-			System.out.println("Recieved proposals");
-			
-		}
-	};
-
-	synchronized public int getQuantity() {
-		return quantity;
-	}
-
-
-
-
-	synchronized public int getDeadline() {
-		return deadline;
 	}
 	
+	//_____________________ Plans ________________________________
+
 	@Plan(trigger=@Trigger(factchangeds="time"))
 	synchronized void updateStuff(){
 
@@ -127,22 +103,53 @@ public class BuyerAgentBDI  {
 	
 	}
 	
-	
-	@AgentBody
-	synchronized public void agentBody() {
-		//product=new Banana();
-		//super.agentBody();
+	@Plan
+	synchronized void chooseCheapestSuitedProposalPlan(ArrayList <Proposal> proposals,Demand demand){
 		
-		price = (int) agent.getArgument("Maximum Buying Price");
-		product = (String) agent.getArgument("Product");
-
+		
+		System.out.println("Choosing cheapest one from "+proposals.size());
+		Proposal best=null;
+		
+		for(int i=0;i<proposals.size();i++){
+			System.out.println("0");
+			Proposal prop=proposals.get(i);
+			System.out.println("1");
+			if(!prop.getProduct().equals(demand.getProduct()))return;
+			System.out.println("2");
+			if(prop.getPrice()>demand.getPrice())return;
+			System.out.println("3");
+			if(prop.getQuantity()<demand.getQuantity())return;
+			System.out.println("4");
+			if(best==null|| best.getPrice()>prop.getPrice())best=prop;
+		}
+		
+		System.out.println("Run");
+		
+		if(best!=null){
+			
+			System.out.println("Needed "+quantity);
+			SealedProposal s=new SealedProposal(demand, best);
+			s.execute();
+			System.out.println("Need "+quantity);
+		}
 	}
+
+	@Plan(trigger=@Trigger(factchangeds="deadline"))
+	synchronized void tryToSatisfyNecessities(){
+		
+		askForPrices();
+		
+	}
+
+	//_____________________ Helper Methods ________________________________
+	
 	synchronized void changePricesAccordingly(){
 		
 	
 		price*=1.1;
 		
 	}
+	
 	synchronized void askForPrices(){
 		
 		
@@ -165,6 +172,7 @@ public class BuyerAgentBDI  {
 		
 		
 	}
+	
 	synchronized public Future <ArrayList <Proposal> > askForBids(final Demand demand) {
 		
 		System.out.println("Started negociation for price ="+price+" and quantity ="+quantity);
@@ -228,57 +236,18 @@ public class BuyerAgentBDI  {
 		return fut;
 
 	}
+	
 	synchronized void handleProposalsWithAdequatePlan(ArrayList <Proposal> proposals,Demand demand){
 		
 		chooseCheapestSuitedProposalPlan(proposals, demand);
 	}
 	
-	@Plan
-	synchronized void chooseCheapestSuitedProposalPlan(ArrayList <Proposal> proposals,Demand demand){
-		
-		
-		System.out.println("Choosing cheapest one from "+proposals.size());
-		Proposal best=null;
-		
-		for(int i=0;i<proposals.size();i++){
-			System.out.println("0");
-			Proposal prop=proposals.get(i);
-			System.out.println("1");
-			if(!prop.getProduct().equals(demand.getProduct()))return;
-			System.out.println("2");
-			if(prop.getPrice()>demand.getPrice())return;
-			System.out.println("3");
-			if(prop.getQuantity()<demand.getQuantity())return;
-			System.out.println("4");
-			if(best==null|| best.getPrice()>prop.getPrice())best=prop;
-		}
-		
-		System.out.println("Run");
-		
-		if(best!=null){
-			
-			System.out.println("Needed "+quantity);
-			SealedProposal s=new SealedProposal(demand, best);
-			s.execute();
-			System.out.println("Need "+quantity);
-		}
-	}
-
-
-
-	@Plan(trigger=@Trigger(factchangeds="deadline"))
-	synchronized void tryToSatisfyNecessities(){
-		
-		askForPrices();
-		
-	}
-
 	synchronized public void executeBid(Bid bid) {
 		
 		System.out.println("Buyer executing Demand");
 		
 		if(!bid.getClass().equals(Demand.class))return;
-		if(!bid.getProduct().equals(getProduct()))return;
+		if(!bid.getProduct().equals(product))return;
 		if(!bid.getIssuer().equals(this))return;
 		
 		quantity-=bid.getQuantity();

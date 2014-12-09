@@ -169,19 +169,6 @@ public class SellerAgentBDI  {
 		
 		if(nrProducts>stockCapacity)nrProducts=stockCapacity;
 		
-		float stockRatio=((float)nrProducts)/stockCapacity;
-		
-		
-		/*
-		if(stockRatio>0.8){
-			price=(int) (0.75*basePrice);
-		}
-		else if(stockRatio<0.2){
-			price=(int) (1.10*basePrice);
-		}
-		else price=basePrice;
-	
-		*/
 		
 		
 	}

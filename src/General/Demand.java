@@ -12,7 +12,7 @@ public class Demand extends Bid {
 	
 	public Demand(BuyerAgentBDI buyer){
 		
-		super(buyer,buyer.getProduct(),buyer.getPrice(),buyer.getQuantity(),buyer.getDeadline());
+		super(buyer,buyer.product,buyer.price,buyer.quantity,buyer.deadline);
 		
 	}
 
