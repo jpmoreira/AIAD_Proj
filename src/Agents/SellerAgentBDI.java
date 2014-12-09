@@ -32,7 +32,7 @@ import jadex.micro.annotation.ProvidedServices;
 	@Argument(name="Stock Capacity", clazz=Integer.class, defaultvalue="100"),
 	@Argument(name="Production", clazz=Integer.class, defaultvalue="5"),
 	@Argument(name="Base Price", clazz=Integer.class, defaultvalue="10"),
-	@Argument(name="Product", clazz=String.class, defaultvalue="Banana")
+	@Argument(name="Product", clazz=String.class, defaultvalue="\"Banana\"")
 	})
 @ProvidedServices(@ProvidedService(type = SellingService.class,implementation=@Implementation(SimpleSellingService.class)))
 public class SellerAgentBDI  {
@@ -112,10 +112,13 @@ public class SellerAgentBDI  {
 		
 		System.out.println("" + this + " - Quantity "+ nrProducts + " with price " + price+ " for demand "+d
 				);
-		
+		/*
+		System.out.println(d==null);
+		System.out.println("Buyer: " + d.getIssuer() + " Product: " + d.getProduct());
 		System.out.println(d.getProduct()==null);
-		System.out.println(d.getProduct()==null);
-		
+		System.out.println(!d.getProduct().equals(product));
+		System.out.println(d.getQuantity()>nrProducts);
+		*/
 		if(d==null ||d.getProduct()==null || !d.getProduct().equals(product) || d.getQuantity()>nrProducts)return null;
 		
 		
