@@ -1,7 +1,6 @@
 package General;
 
 public class QLearner {
-	
 
 	
 	public static enum Action {

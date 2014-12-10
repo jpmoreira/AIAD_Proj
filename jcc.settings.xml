@@ -11,7 +11,7 @@
 		<p0:property __ID="9" name="jadex.tools.security.SecurityServicePlugin" type="ISecurityService">true</p0:property>
 	</p0:properties>
 	<p0:properties __ID="10" type="controlcenter">
-		<p0:property __ID="11" type="perspective">Debugger</p0:property>
+		<p0:property __ID="11" type="perspective">Starter</p0:property>
 		<p0:property __ID="12" type="consoleenabled">false</p0:property>
 		<p0:property __ID="13" type="consoleheights"><![CDATA[<?xml version="1.0" encoding="utf-8"?>
 <p0:HashMap xmlns:p0="typeinfo:java.util" __ID="0">

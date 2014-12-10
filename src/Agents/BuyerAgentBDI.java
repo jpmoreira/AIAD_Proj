@@ -48,6 +48,8 @@ public class BuyerAgentBDI  {
 	
 	public String product;
 	
+	public int startDeadline;
+	
 	//__________________ Beliefs _____________________________
 	
 	@Belief
@@ -59,6 +61,9 @@ public class BuyerAgentBDI  {
 	@Belief
 	public int price;
 	
+	@Belief
+	public int basePrice; 
+	
 	@Belief(updaterate=1000)
 	public long time=System.currentTimeMillis();
 	
@@ -69,7 +74,7 @@ public class BuyerAgentBDI  {
 		//product=new Banana();
 		//super.agentBody();
 		
-		price = (int) agent.getArgument("Maximum Buying Price");
+		basePrice = (int) agent.getArgument("Maximum Buying Price");
 		product = (String) agent.getArgument("Product");
 
 	}
@@ -88,7 +93,8 @@ public class BuyerAgentBDI  {
 				
 				quantity=Utilities.randInt(1, 30);
 				deadline=Utilities.randInt(1, 50);
-				price=Utilities.randInt(1,100);
+				//price=Utilities.randInt(1,100);
+				price=basePrice;
 				System.out.println("I have a need now of "+quantity+" "+product+" at "+price);
 				
 			}
@@ -103,6 +109,13 @@ public class BuyerAgentBDI  {
 	
 	}
 	
+	@Plan(trigger=@Trigger(factchangeds="deadline"))
+	synchronized void changePrice(){
+		
+		
+		
+	}
+	
 	@Plan
 	synchronized void chooseCheapestSuitedProposalPlan(ArrayList <Proposal> proposals,Demand demand){
 		
@@ -111,19 +124,15 @@ public class BuyerAgentBDI  {
 		Proposal best=null;
 		
 		for(int i=0;i<proposals.size();i++){
-			//System.out.println("0");
 			Proposal prop=proposals.get(i);
-			//System.out.println("1");
 			if(!prop.getProduct().equals(demand.getProduct()))return;
-			//System.out.println("2");
 			if(prop.getPrice()>demand.getPrice())return;
-			//System.out.println("3");
 			if(prop.getQuantity()<demand.getQuantity())return;
-			//System.out.println("4");
+			
 			if(best==null|| best.getPrice()>prop.getPrice())best=prop;
 		}
 		
-		System.out.println("Run");
+		
 		
 		if(best!=null){
 			
@@ -256,4 +265,8 @@ public class BuyerAgentBDI  {
 		
 		
 	}
+
+
+	//_________________________ Goals _________________________________
+
 }

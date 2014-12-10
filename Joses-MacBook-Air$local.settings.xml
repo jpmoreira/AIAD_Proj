@@ -60,7 +60,7 @@
 			<p0:property __ID="14" type="autogenerate">false</p0:property>
 			<p0:property __ID="15" type="number">1</p0:property>
 			<p0:property __ID="16" type="name">BuyerAgent</p0:property>
-			<p0:property __ID="17" type="argument">25</p0:property>
+			<p0:property __ID="17" type="argument"></p0:property>
 			<p0:property __ID="18" type="argument"></p0:property>
 		</p0:properties>
 	</p0:properties>
