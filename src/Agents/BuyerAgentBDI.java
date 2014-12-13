@@ -33,7 +33,8 @@ import Services.SellingService;
 @Agent
 @Description("A buyer agent")
 @Arguments({
-	@Argument(name="Maximum Buying Price", clazz=Integer.class, defaultvalue="10"),
+	@Argument(name="Standard Buying Price", clazz=Integer.class, defaultvalue="10"),
+	@Argument(name="Maximum Buying Price", clazz=Integer.class, defaultvalue="20"),
 	@Argument(name="Product", clazz=String.class, defaultvalue="\"Banana\"")
 	})
 @RequiredServices(@RequiredService(name="SellingService", type=SellingService.class,
@@ -64,6 +65,9 @@ public class BuyerAgentBDI  {
 	@Belief
 	public int basePrice; 
 	
+	@Belief
+	public int maxPrice;
+	
 	@Belief(updaterate=1000)
 	public long time=System.currentTimeMillis();
 	
@@ -74,7 +78,8 @@ public class BuyerAgentBDI  {
 		//product=new Banana();
 		//super.agentBody();
 		
-		basePrice = (int) agent.getArgument("Maximum Buying Price");
+		basePrice = (int) agent.getArgument("Standard Buying Price");
+		maxPrice= (int) agent.getArgument("Maximum Buying Price");
 		product = (String) agent.getArgument("Product");
 
 	}
@@ -92,10 +97,11 @@ public class BuyerAgentBDI  {
 				
 				
 				quantity=Utilities.randInt(1, 30);
-				deadline=Utilities.randInt(1, 50);
+				startDeadline=Utilities.randInt(1, 50);
+				deadline=startDeadline;
 				//price=Utilities.randInt(1,100);
 				price=basePrice;
-				System.out.println("I have a need now of "+quantity+" "+product+" at "+price);
+				//System.out.println("I have a need now of "+quantity+" "+product+" at "+price);
 				
 			}
 			
@@ -103,6 +109,7 @@ public class BuyerAgentBDI  {
 		else{
 			
 			deadline--;
+			price=(int)((basePrice-maxPrice)/(float)startDeadline*deadline+maxPrice);
 			
 		}
 		
@@ -120,7 +127,7 @@ public class BuyerAgentBDI  {
 	synchronized void chooseCheapestSuitedProposalPlan(ArrayList <Proposal> proposals,Demand demand){
 		
 		
-		System.out.println("Choosing cheapest one from "+proposals.size());
+		//System.out.println("Choosing cheapest one from "+proposals.size());
 		Proposal best=null;
 		
 		for(int i=0;i<proposals.size();i++){
@@ -136,10 +143,10 @@ public class BuyerAgentBDI  {
 		
 		if(best!=null){
 			
-			System.out.println("Needed "+quantity);
+			//System.out.println("Needed "+quantity);
 			SealedProposal s=new SealedProposal(demand, best);
 			s.execute();
-			System.out.println("Need "+quantity);
+			//System.out.println("Need "+quantity);
 		}
 	}
 
@@ -155,10 +162,10 @@ public class BuyerAgentBDI  {
 	synchronized void askForPrices(){
 		
 		
-		System.out.println("Asking For prices");
+		//System.out.println("Asking For prices");
 		final Demand d=new Demand(this);
 		
-		System.out.println("Demand set");
+		//System.out.println("Demand set");
 		
 		
 		Future<ArrayList<Proposal> >propsFuture=askForBids(d);
@@ -177,7 +184,7 @@ public class BuyerAgentBDI  {
 	
 	synchronized public Future <ArrayList <Proposal> > askForBids(final Demand demand) {
 		
-		System.out.println("Started negociation for price ="+price+" and quantity ="+quantity);
+		//System.out.println("Started negociation for price ="+price+" and quantity ="+quantity);
 		
 		final Future <ArrayList<Proposal> > fut=new  Future<ArrayList <Proposal> >(); 
 		
@@ -202,8 +209,8 @@ public class BuyerAgentBDI  {
 		sellers.addResultListener(new IResultListener<Collection<SellingService>>() {
 			
 			@Override
-			public void resultAvailable(Collection<SellingService> sellers) {
-				System.out.println("Found "+sellers.size()+" sellers");
+			synchronized public void resultAvailable(Collection<SellingService> sellers) {
+				//System.out.println("Found "+sellers.size()+" sellers");
 				
 				
 				ArrayList<Proposal> proposals=new ArrayList<Proposal>();
@@ -212,7 +219,7 @@ public class BuyerAgentBDI  {
 				
 				while(it.hasNext()){
 					SellingService s=it.next();
-					System.out.println("Found "+s);	
+					//System.out.println("Found "+s);	
 					Proposal p=s.proposalForDemand(demand);
 					//System.out.println("Got proposal at price "+p.getPrice());
 					if(p==null)continue;
@@ -228,7 +235,7 @@ public class BuyerAgentBDI  {
 			@Override
 			public void exceptionOccurred(Exception arg0) {
 				
-				System.out.println("No service provider found exception: "+arg0);
+				//System.out.println("No service provider found exception: "+arg0);
 				
 				fut.setResult(new ArrayList <Proposal>());
 			}
@@ -246,7 +253,7 @@ public class BuyerAgentBDI  {
 	
 	synchronized public void executeBid(Bid bid) {
 		
-		System.out.println("Buyer executing Demand");
+		//System.out.println("Buyer executing Demand");
 		
 		if(!bid.getClass().equals(Demand.class))return;
 		if(!bid.getProduct().equals(product))return;
@@ -255,7 +262,7 @@ public class BuyerAgentBDI  {
 		quantity-=bid.getQuantity();
 		if(quantity==0)quantity=-1;//if all need satisfied then just set quantity to -1 (so that a new need will be triggered latter)
 		
-		System.out.println("Executed Demand. Now with necessary quantity "+quantity);
+		//System.out.println("Executed Demand. Now with necessary quantity "+quantity);
 		
 		
 		

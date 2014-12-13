@@ -2,27 +2,15 @@ package General;
 
 public class QLearner {
 
-	
-	public static enum Action {
-        Increase(1), Mantain(0), Decrease(-1);
-        
-        public final int value;//for testing purposes
-        public final int index;
-        private Action(int value) {
-            this.value = value;
-            this.index=this.value+1;
-        }
 
-
-    }
 	
 	public int currentPrice; //public for testing purposes
 	int minPrice;
 	int maxPrice;
 	
-	int t;
+	public int t;
 	
-	public int[][] qMatrix;//public for testing purposes
+	public int[] qMatrix;//public for testing purposes
 	double discount_factor;
 	double learning_rate;
 	
@@ -34,40 +22,47 @@ public class QLearner {
 		learning_rate=learningRate;
 		discount_factor=discountFactor;
 		
+		//System.out.println("Initial price is "+currentPrice+ " minPrice="+minPrice);
+		
 		t=tMax;
 		
-		qMatrix=new int[maxPrice-minPrice+1][3];//organizing this way may reduce number of page-faults when running algorithm since we should iterate along a line more often with this disposition
+		qMatrix=new int[maxPrice-minPrice+1];//organizing this way may reduce number of page-faults when running algorithm since we should iterate along a line more often with this disposition
 		
 		
 	}
 
 	
-	public boolean iterate(double reward,Action ac){
+	public boolean iterate(double reward,int action){
 		
 		
-		if(ac==Action.Increase && currentPrice>=maxPrice)return false;
-		else if(ac==Action.Decrease && currentPrice<=minPrice)return false;
+		int priceAfterAction=action+currentPrice;
 		
-		int S_t0=currentPrice-minPrice;//index of state is the difference to the minPrice (so states are: minPrice,minPrice+1,...,minPrice+n,...,topPrice)
-		int S_t1=S_t0+ac.value;//index for the state we are going to
+		if(priceAfterAction >maxPrice || priceAfterAction<minPrice)return false;
 		
-		int Q_t0=qMatrix[S_t0][ac.index];//hold value in temporary variable for readability sake, lets hope compiler is smart enough to discover this and optimize it
 		
-		int max_a_Q_t1=0;
+		//int S_t0=currentPrice-minPrice;//index of state is the difference to the minPrice (so states are: minPrice,minPrice+1,...,minPrice+n,...,topPrice)
+		int S_t1=priceAfterAction-minPrice;
+		int Q_t1=qMatrix[S_t1];
 		
-		for(int Q_t1 : qMatrix[S_t1]){//find best value for a action in the future
-			if(Q_t1>max_a_Q_t1)max_a_Q_t1=Q_t1;
+		int max_a_Q_t1=Integer.MIN_VALUE;
+		
+		for(int q : qMatrix){//find best value for a action in the future
+			if(q>max_a_Q_t1)max_a_Q_t1=q;
 		}
 		
 		
-		Q_t0+=(int) (learning_rate*(reward+discount_factor*max_a_Q_t1-Q_t0));
-		
-		qMatrix[S_t0][ac.index]=Q_t0;//save the value (lets hope compiler optimizes this by not using the temporary value)
-		
-		currentPrice+=ac.value;
+		Q_t1+=(int) (learning_rate*(reward+discount_factor*max_a_Q_t1-Q_t1));
 		
 		
+		//System.out.println("curPrice="+currentPrice+" action="+action);
+		//System.out.println(" Set Q["+S_t1+"]="+Q_t1);
 		
+		qMatrix[S_t1]=Q_t1;//save the value (lets hope compiler optimizes this by not using the temporary value)
+		
+		currentPrice=priceAfterAction;
+		
+		
+		if(t!=1)t--;
 		
 		return true;
 		
@@ -77,45 +72,29 @@ public class QLearner {
 		
 	}
 	
-	/**
-	 * 
-	 * 
-	 * @return an array of three positions. At the position Action.Increase.index is placed the Q value for the Increase action, and so on for the other two.
-	 */
-	
-	private int[] QforActions(){
-	
-		int [] array=new int[3];
-		
-		array[Action.Increase.index]=qMatrix[currentPrice-minPrice][Action.Increase.index];
-		array[Action.Mantain.index]=qMatrix[currentPrice-minPrice][Action.Mantain.index];
-		array[Action.Decrease.index]=qMatrix[currentPrice-minPrice][Action.Decrease.index];
-		
-		return array;
+	public int determenisticAction(){
 		
 		
-		
-	}
-	
-	public Action determenisticAction(){
+		int destState=-1;
+		int destValue=Integer.MIN_VALUE;
 		
 		
-		int[] qs=QforActions();
+		for(int i=0;i<qMatrix.length;i++){
+			
+			int val=qMatrix[i];
+			if(val>destValue){
+				destState=i;
+				destValue=val;
+			}
+		}
 		
-		//indexes of the qs of the various actions
-		int inc_i=Action.Increase.index;
-		int dec_i=Action.Decrease.index;
-		int man_i=Action.Mantain.index;
 		
-		
-		if(qs[inc_i]>=qs[man_i] && qs[inc_i]>=qs[dec_i])return Action.Increase;
-		else if(qs[man_i]>=qs[inc_i] && qs[man_i]>=qs[dec_i])return Action.Mantain;
-		else return Action.Decrease;
+		return (destState+minPrice)-currentPrice;//return how much to increase
 		
 	}
 	
 	
-	public Action action(){
+	public int action(){
 		
 		
 		return action(-1);//use random "truly random" value.
@@ -130,42 +109,44 @@ public class QLearner {
 	 * @return the action to take.
 	 */
 	
-	public Action action(double pseudoRandomValue){
+	public int action(double pseudoRandomValue){
+		
+		
+		double sum=0;
+		double previous=0;
+		
+		double[] intervals=new double[qMatrix.length];
+		
+		for(int i=0;i<intervals.length;i++){
+			
+			double prob=Math.pow(Math.E, qMatrix[i]/(float)t);
+			intervals[i]=prob+previous;
+			previous=intervals[i];
+			sum+=prob;
+		}
 		
 		
 		
+		double rand=Math.random();
+		if(pseudoRandomValue>=0)rand=pseudoRandomValue;
 		
+		rand*=sum;
 		
+		double prev=0;
+		int destState=0;
 		
-		int[] qs_for_actions=QforActions();
+		for(int i=0;i<intervals.length;i++){
+			
+			if(rand>=prev && rand<=intervals[i]){
+				destState=i;
+				break;
+			}
+			prev=intervals[i];
+		}
 		
-		int increase=qs_for_actions[Action.Increase.index];
-		int mantain=qs_for_actions[Action.Mantain.index];
-		int decrease=qs_for_actions[Action.Decrease.index];
+		return (destState+minPrice)-currentPrice;
 		
-		
-		
-		//probability of using action increase
-		double p_increase= Math.pow(Math.E, increase/(float)t);
-		double p_mantain= Math.pow(Math.E, mantain/(float)t);
-		double p_decrease= Math.pow(Math.E, decrease/(float)t);
-		
-		double total_p=p_increase+p_mantain+p_decrease;//overall prob
-		
-		//normalize
-		p_increase/=total_p;
-		p_mantain/=total_p;
-		p_decrease/=total_p;
-		
-		double randomNumber=Math.random();
-		if(pseudoRandomValue>=0.0)randomNumber=pseudoRandomValue;//if bigger than zero then override
-		
-		
-		if(t>=1)t--;//change t
-		
-		if(randomNumber<=p_increase)return Action.Increase;
-		if(randomNumber<=p_increase+p_mantain)return Action.Mantain;
-		return Action.Decrease;
+
 		
 		
 	}
